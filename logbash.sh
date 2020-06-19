@@ -19,6 +19,12 @@ case $1 in
 		linux ${target} $2
 		eval ${target_cmd}
 		;;
+        http)
+                target="${http_log_target}"
+                source ${modules_dir}/http.sh
+                http ${target} $2
+                eval ${target_cmd}
+                ;;
 	-h|--help)
 		echo "usage: $0 [ $valid_modules ]"
 		;;	
