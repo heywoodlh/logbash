@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-config_file="./config.sh"
-modules_dir="./modules"
+rootDir="$(dirname $(realpath $0))"
+
+config_file="${rootDir}/config.sh"
+modules_dir="${rootDir}/modules"
 
 source ${config_file}
 

@@ -17,10 +17,10 @@ linux() {
 			export target_cmd="grep -R -e 'sshd.*Failed password' -e 'sshd.*Invalid verification code' -e 'sshd.*invalid user' ${target}"
 			;;
 		--help)	
-			echo "usage: $0 linux [${valid_submodules}]"
+			echo "usage: $0 linux [ ${valid_submodules} ]"
 			;;
 		*)	
-			echo "usage: $0 linux [${valid_submodules}]"
+			echo "usage: $0 linux [ ${valid_submodules} ]"
 			;;
 	esac
 }
