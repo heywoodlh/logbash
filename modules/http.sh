@@ -11,10 +11,10 @@ http() {
 			export target_cmd="grep -R -E 'HTTP.*200' ${target}"
 			;;
 		--help)	
-			echo "usage: $0 [${valid_submodules}]"
+			echo "usage: $0 http [${valid_submodules}]"
 			;;
 		*)	
-			echo "usage: $0 [${valid_submodules}]"
+			echo "usage: $0 http [${valid_submodules}]"
 			;;
 	esac
 }
