@@ -1,0 +1,4 @@
+echo "-------------------------"
+echo "HTTP 200 code access logs"
+echo "-------------------------"
+grep -R -E 'HTTP.*200' ${http_log_target}
