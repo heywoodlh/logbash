@@ -75,7 +75,7 @@ usage: /usr/bin/logbash [ cisco http linux palo ] [ --tail --date "Jan 01 2020" 
 If I want to get help on the `linux` module:
 ```bash
 ❯ logbash
-usage: /usr/bin/logbash linux [ filebeat ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
+usage: /usr/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
 ```
 
 Finally, if I want to run the `linux ssh` submodule to retrieve all ssh logs:
