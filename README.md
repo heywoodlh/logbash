@@ -81,7 +81,7 @@ usage: /usr/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2
 Finally, if I want to run the `linux ssh` submodule to retrieve all ssh logs:
 
 ```bash
-❯ logbash linux ssh | grep heywoodlh | tail -1
+❯ logbash linux ssh
 /log/2020.07.16.log:Jul 16 11:12:13 127.0.0.1 sshd[10010]: pam_unix(sshd:session): session closed for user heywoodlh
 ```
 
