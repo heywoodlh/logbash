@@ -1,8 +1,8 @@
-### http log module
-http() {
-	module="http"
+### cisco log module
+cisco() {
+	module="cisco"
 	set -o noglob
-	log_target=${http_log_target}
+	log_target=${cisco_log_target}
 	set +o noglob
 	
 	### Enumerate the submodules
