@@ -176,7 +176,7 @@ For example, the ssh submodule in the linux module has the following path:
 modules/linux/submodules/ssh
 ```
 
-They expect one of two variables be set in the submodule file named `grep_pattern` or `search_command`. For example:
+The modules expect one of two variables be set in the submodule file named `grep_pattern` or `search_command`. For example:
 
 ```bash
 export grep_pattern="sshd"
