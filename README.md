@@ -170,6 +170,12 @@ Modify `modules/custom.sh` for any module-specific changes that are needed.
 
 Modules out-of-the-box expect that submodules be stored in the `submodules` directory of the `module` directory.
 
+For example, the ssh submodule in the linux module has the following path:
+
+```bash
+modules/linux/submodules/ssh
+```
+
 They expect one of two variables be set in the submodule file named `grep_pattern` or `search_command`. For example:
 
 ```bash
