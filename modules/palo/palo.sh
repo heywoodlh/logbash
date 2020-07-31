@@ -1,6 +1,5 @@
 ### palo log module
 palo() {
-	module="palo"
 	set -o noglob
 	log_target=${palo_log_target}
 	set +o noglob
@@ -24,9 +23,6 @@ palo() {
 	### Execute the submodule
 	if [[ -f ${target_file} ]]
 	then
-		echo "-------------------------"
-		echo "${module} ${target} logs"
-		echo "-------------------------"
 		source ${target_file}
 		if [[ -n ${grep_pattern} ]] && [[ -n ${tail} ]]
 		then
