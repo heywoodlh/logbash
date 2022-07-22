@@ -9,7 +9,7 @@ The target platform is Linux and while you could make this easily work on MacOS 
 ### Use Case:
 The imagined scenario is to use a log ingestion service to receive logs, write the log messages to files on disk and then use logbash to retrieve the desired log messages.
 
-Log ingestion services such as [Logstash](https://www.elastic.co/logstash) or [Syslog-ng](https://github.com/syslog-ng/syslog-ng) would be optimal (and free/open source) services that could work well in combination with logbash.
+View the [syslog-ng example](syslog-ng) directory for an example Docker deployment of syslog-ng that will work well with logbash.
 
 ### Organization (Modules and Submodules):
 Logbash relies on what are termed "modules" and "submodules" for extensible functionality. Modules consist of a shell script that contains a function named the same as the module. Submodules define the rules that submodules will use to search files.
@@ -29,7 +29,7 @@ ln -s /opt/logbash/logbash.sh /usr/bin/logbash
 
 ## Configuration:
 
-Edit `config.sh` to match the paths to your relevant log files. 
+Edit `config.sh` to match the paths to your relevant log files.  
 
 Logbash supports wildcard in the log paths out-of-the-box, but if your logs are huge or you want to optimize for speed it would be recommended to make your wildcards match fewer log sources (based on your logging file name structure). If you don't care then just use all the wildcards you'd like. 
 
