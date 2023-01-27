@@ -1,7 +1,7 @@
 # Logbash
 
 ## Description:
-Logbash is a simple log parsing framework using the BASH scripting language/shell and common GNU/Linux tools for searching through raw log files in the command line quick. Many other log searching tools exist but are very complex, difficult to manage, resource intensive (and -- often --expensive). Logbash aims to simplify the searching of logs in the command line in a modular but simple fashion. 
+Logbash is a simple log parsing framework using the BASH scripting language/shell and common GNU/Linux tools for searching through raw log files in the command line quick. Many other log searching tools exist but are very complex, difficult to manage, resource intensive (and -- often -- expensive). Logbash aims to simplify the searching of logs in the command line in a modular but simple fashion. 
 
 The target platform is Linux and while you could make this easily work on MacOS or Windows (WSL 2) there is no desire to make logbash work out-of-the-box on other platforms. Since logbash is extremely flexible, it would not be difficult at all to modify the relevant shell scripts to get logbash to work on other platforms.
 
@@ -74,7 +74,7 @@ usage: /usr/bin/logbash [ cisco http linux palo ] [ --tail --date "Jan 01 2020" 
 
 If I want to get help on the `linux` module:
 ```bash
-❯ logbash
+❯ logbash linux
 usage: /usr/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
 ```
 
