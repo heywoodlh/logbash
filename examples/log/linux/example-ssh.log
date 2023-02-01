@@ -1,0 +1,5 @@
+Jan 31 23:31:35 host-1 128 <86>1 2023-01-31T23:31:35-07:00 ct-1 sshd 86013 - - pam_unix(sshd:session): session opened for user nagios(uid=1001) by (uid=0)
+Jan 31 23:31:36 host-1 121 <86>1 2023-01-31T23:31:36-07:00 ct-1 sshd 86025 - - Starting session: command for nagios from 172.17.0.9 port 39146 id 0
+Jan 31 23:31:36 host-1 111 <86>1 2023-01-31T23:31:36-07:00 ct-1 sshd 86025 - - Close session: user nagios from 172.17.0.9 port 39146 id 0
+Jan 31 23:31:36 host-1 104 <86>1 2023-01-31T23:31:36-07:00 ct-1 sshd 86025 - - Disconnected from user nagios 172.17.0.9 port 39146
+Jan 31 23:31:36 host-1 107 <86>1 2023-01-31T23:31:36-07:00 ct-1 sshd 86013 - - pam_unix(sshd:session): session closed for user nagios

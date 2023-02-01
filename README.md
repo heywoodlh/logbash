@@ -9,7 +9,7 @@ The target platform is Linux and while you could make this easily work on MacOS 
 ### Use Case:
 The imagined scenario is to use a log ingestion service to receive logs, write the log messages to files on disk and then use logbash to retrieve the desired log messages.
 
-View the [syslog-ng example](syslog-ng) directory for an example Docker deployment of syslog-ng that will work well with logbash.
+View the [syslog-ng example](examples/syslog-ng) directory for an example Docker deployment of syslog-ng that will work well with logbash.
 
 ### Organization (Modules and Submodules):
 Logbash relies on what are termed "modules" and "submodules" for extensible functionality. Modules consist of a shell script that contains a function named the same as the module. Submodules define the rules that submodules will use to search files.
