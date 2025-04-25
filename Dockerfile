@@ -1,9 +1,9 @@
-FROM debian:bullseye
+FROM ubuntu:24.04
 LABEL maintainer=heywoodlh
 
 # Set some variables
-ENV GID 1000
-ENV UID 1000
+ENV GID=1000
+ENV UID=1000
 
 # Install coreutils, and other potentially useful log parsing tools
 RUN apt-get update && apt-get install -y coreutils ripgrep jq \
@@ -16,8 +16,9 @@ COPY . /app
 RUN rm -rf /app/examples
 
 # Add unprivileged user
-RUN groupadd -g $GID user \
-    && useradd -h /app -u $UID -g $GID -s /bin/bash logbash \
+RUN userdel --remove ubuntu \
+    && groupadd --gid $GID logbash \
+    && useradd --home-dir /app --uid $UID --gid $GID --password "" --shell /bin/bash logbash \
     && chown -R $UID:$GID /app
 
 VOLUME /app/modules
