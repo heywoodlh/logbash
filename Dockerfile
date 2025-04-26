@@ -21,9 +21,6 @@ RUN userdel --remove ubuntu \
     && useradd --home-dir /app --uid $UID --gid $GID --password "" --shell /bin/bash logbash \
     && chown -R $UID:$GID /app
 
-VOLUME /app/modules
-VOLUME /app/config.sh
-
 USER logbash
 
 ENTRYPOINT ["/app/logbash.sh"]

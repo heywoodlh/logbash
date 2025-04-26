@@ -29,6 +29,10 @@ ln -s /opt/logbash/logbash.sh /usr/bin/logbash
 
 ## Configuration:
 
+```
+cp config.sh.example config.sh
+```
+
 Edit `config.sh` to match the paths to your relevant log files.  
 
 Logbash supports wildcard in the log paths out-of-the-box, but if your logs are huge or you want to optimize for speed it would be recommended to make your wildcards match fewer log sources (based on your logging file name structure). If you don't care then just use all the wildcards you'd like. 
