@@ -13,12 +13,13 @@ RUN apt-get update && apt-get install -y coreutils ripgrep jq \
 COPY . /app
 
 # Remove examples directory from /app
-RUN rm -rf /app/examples
+RUN rm -rf /app/examples \
+    && ln -s /app/logbash.sh /usr/local/bin/logbash
 
 # Add unprivileged user
 RUN userdel --remove ubuntu \
     && groupadd --gid $GID logbash \
-    && useradd --home-dir /app --uid $UID --gid $GID --password "" --shell /bin/bash logbash \
+    && useradd --home-dir /logbash --uid $UID --gid $GID --password "" --shell /bin/bash logbash \
     && chown -R $UID:$GID /app
 
 USER logbash

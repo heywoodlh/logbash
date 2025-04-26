@@ -1,13 +1,14 @@
-#export linux_log_target="/log/linux/*.log"
-#export http_log_target="/log/http/*.log"
-#export palo_log_target="/log/palo/*.log"
-#export cisco_log_target="/log/cisco/*.log"
+#export linux_log_target="/logs/linux/*.log"
+#export http_log_target="/logs/http/*.log"
+#export palo_log_target="/logs/palo/*.log"
+#export cisco_log_target="/logs/cisco/*.log"
+#export unifi_log_target="/logs/unifi/*.log"
 
 
 ## Uncomment default_find_mime_time if you want logbash to default to only search for files modified within a certain time:
 #export default_find_mime_time='-1' ## Defaults to one day
 
-## No need to uncomment unless you want to make an exception for specific modules to not use the default find time if you have it set 
+## No need to uncomment unless you want to make an exception for specific modules to not use the default find time if you have it set
 ## You should probably add this variable to the modules you don't want to use default time to search, not in config.sh
 #export disable_default_find_mime_time="true"
 

@@ -18,68 +18,256 @@ For example, `modules/linux/linux.sh` contains a function named `linux` that the
 
 This is the way we organized it for our use-case, but you could easily modify the modules to not be restricted to this structure -- they are just BASH scripts, after all.
 
-## Installation:
-
-(As root):
-
-```bash
-git clone https://github.com/heywoodlh/logbash /opt/logbash
-ln -s /opt/logbash/logbash.sh /usr/bin/logbash
-```
-
 ## Configuration:
 
 ```
 cp config.sh.example config.sh
 ```
 
-Edit `config.sh` to match the paths to your relevant log files.  
+Edit `config.sh` to match the paths to your relevant log files. If you'd like to set a custom path to `config.sh` use the `LOGBASH_CONFIG` environment variable to specify a path. 
 
 Logbash supports wildcard in the log paths out-of-the-box, but if your logs are huge or you want to optimize for speed it would be recommended to make your wildcards match fewer log sources (based on your logging file name structure). If you don't care then just use all the wildcards you'd like. 
 
-Since `config.sh` is documented with comments, it should be fairly straightforward as to what the variables do.
+Since `config.sh` is documented with comments, it should be fairly straightforward as to what the variables do -- feel free to open an issue if `config.sh` isn't clear.
 
-```bash
-❯ cat config.sh
+### Docker deployment:
 
-#export linux_log_target="/log/linux/*.log"
-#export http_log_target="/log/http/*.log"
-#export palo_log_target="/log/palo/*.log"
-#export cisco_log_target="/log/cisco/*.log"
+The `docker-compose.yml` in this repo contains a fully working reference for syslog-ng and logbash. Deploy like so:
 
+```
+cp ./config.sh.example config.sh #edit config.sh as desired
+docker compose up -d
+```
 
-## Uncomment default_find_mime_time if you want logbash to default to only search for files modified within a certain time:
-#export default_find_mime_time='-1' ## Defaults to one day
+Then get a shell in the `logbash` container like so:
 
-## No need to uncomment unless you want to make an exception for specific modules to not use the default find time if you have it set
-## You should probably add this variable to the modules you don't want to use default time to search, not in config.sh
-#export disable_default_find_mime_time="true"
+```
+docker compose exec logbash bash
+```
 
+The `docker-compose.yml` and its configuration deploys a listener on UDP port 514 for Unifi devices and a TCP listener on port 1514 for Linux servers to forward syslog. For other services, you'll need to add more ports and update the syslog-ng configuration in _./examples/syslog-ng_.
 
+### Deployment in Kubernetes:
 
-## Uncomment if you want to disable the --date flag.
-## You should probably add this variable to the modules you don't want to use the --date flag, not in config.sh
-#export disable_date="true
+Use the following manifest as a reference:
 
+```
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logbash
+  namespace: monitoring
+data:
+  config.sh: |-
+    export linux_log_target="/log/linux/*.log"
+    export http_log_target="/log/http/*.log"
+    export palo_log_target="/log/palo/*.log"
+    export cisco_log_target="/log/cisco/*.log"
+    export unifi_log_target="/logs/unifi/*.log"
+    export default_find_mime_time='-1' ## Defaults to one day
+    #export disable_default_find_mime_time="true"
+    #export disable_date="true
+    export LC_ALL=C
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logbash
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logbash
+  template:
+    metadata:
+      labels:
+        app: logbash
+    spec:
+      hostname: logbash
+      containers:
+      - name: logbash
+        image: docker.io/heywoodlh/logbash:latest
+        command: [ "bash", "-c" ]
+        args: [ "sleep infinity" ]
+        env:
+          - name: LOGBASH_CONFIG
+            value: "/app/config.sh"
+        volumeMounts:
+          - mountPath: /logs
+            name: logs
+          - name: logbash-conf
+            mountPath: /app/config.sh
+            subPath: config.sh
+      volumes:
+        - name: logs
+          hostPath:
+            path: /logs
+            type: Directory
+        - name: logbash-conf
+          configMap:
+            name: logbash
+            items:
+            - key: config.sh
+              path: config.sh
+```
 
-## Uncomment for minor performance improvements in grep
-#export LC_ALL=C
-``` 
+Once deployed, get a shell in the `logbash` deployment pod to interface with `logbash`.
 
+Below is an incomplete reference for a syslog-ng deployment that would work with logbash
+
+<details>
+
+```
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: syslog-conf
+  namespace: monitoring
+data:
+  # reminder, syslog-ng.conf breaks if you don't append a newline
+  syslog-ng.conf: |
+    @version: 4.2
+    @include "/config/conf.d/*.conf"
+
+  linux.conf: |
+    source linux_remote {
+      tcp(ip(0.0.0.0) port(1514));
+    };
+    destination linux_log {
+      file(
+        "/logs/linux/${YEAR}_${MONTH}_${DAY}.log"
+        create-dirs(yes)
+      );
+    };
+    log {
+      source(linux_remote);
+      destination(linux_log);
+    };
+
+  unifi.conf: |
+    source unifi_remote {
+      udp(ip(0.0.0.0) port(514));
+    };
+    destination unifi_log {
+      file(
+        "/logs/unifi/${YEAR}_${MONTH}_${DAY}.log"
+        create-dirs(yes)
+      );
+    };
+    log {
+      source(unifi_remote);
+      destination(unifi_log);
+    };
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syslog
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: syslog
+  template:
+    metadata:
+      labels:
+        app: syslog
+    spec:
+      hostname: syslog
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: syslog
+        image: docker.io/linuxserver/syslog-ng:4.8.1
+        env:
+          - name: PUID
+            value: "1000"
+          - name: PGID
+            value: "1000"
+          - name: LOG_TO_STDOUT
+            value: "true"
+        ports:
+          - name: syslog-0
+            containerPort: 514
+            protocol: UDP
+          - name: syslog-1
+            containerPort: 1514
+            protocol: TCP
+        volumeMounts:
+          - mountPath: /logs
+            name: logs
+          - name: syslog-conf
+            mountPath: /config/syslog-ng.conf
+            subPath: syslog-ng.conf
+          - name: syslog-conf-d
+            mountPath: /config/conf.d
+          - mountPath: /config
+            name: syslog-ng-config-dir # syslog-ng writes to /config a bunch to function
+      volumes:
+        - name: logs
+          hostPath:
+            path: /media/data-ssd/syslog
+            type: Directory
+        - name: syslog-ng-config-dir
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: syslog-conf
+          configMap:
+            name: syslog-conf
+            items:
+            - key: syslog-ng.conf
+              path: syslog-ng.conf
+        - name: syslog-conf-d
+          configMap:
+            name: syslog-conf
+            items:
+              - key: linux.conf
+                path: linux.conf
+              - key: unifi.conf
+                path: unifi.conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: syslog
+  name: syslog
+  namespace: monitoring
+spec:
+  ports:
+    - name: syslog-0
+      port: 514
+      protocol: UDP
+      targetPort: syslog-0
+    - name: syslog-1
+      port: 1514
+      protocol: TCP
+      targetPort: syslog-1
+  selector:
+    app: syslog
+  type: ClusterIP
+```
+
+</details>
 
 ## Usage:
 
-Once logbash is installed, usage is fairly simple:
+Once logbash is deployed, usage is fairly simple:
 
 ```bash
 ❯ logbash
-usage: /usr/bin/logbash [ cisco http linux palo ] [ --tail --date "Jan 01 2020" ]
+usage: /usr/local/bin/logbash [ cisco http linux palo unifi ] [ --tail --date "Jan 01 2020" ]
 ```
 
 If I want to get help on the `linux` module:
 ```bash
 ❯ logbash linux
-usage: /usr/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
+usage: /usr/local/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
 ```
 
 Finally, if I want to run the `linux ssh` submodule to retrieve all ssh logs:

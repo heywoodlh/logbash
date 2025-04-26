@@ -3,7 +3,13 @@ target_command="$1"
 subcommands="${*:2}"
 ### Enumerate script location, modules, etc.
 rootDir="$(dirname $(realpath $0))"
-config_file="${rootDir}/config.sh"
+if [[ -n ${LOGBASH_CONFIG} ]]
+then
+    [[ -e "${LOGBASH_CONFIG}" ]] || { echo "Config file not found: ${LOGBASH_CONFIG}"; exit 1; }
+    config_file="${LOGBASH_CONFIG}"
+else
+    config_file="${rootDir}/config.sh"
+fi
 modules_dir="${rootDir}/modules"
 
 #### Parse config file strings literally

@@ -1,0 +1,22 @@
+services:
+  syslog-ng:
+    image: docker.io/linuxserver/syslog-ng:4.8.1
+    ports:
+      - "514:514/udp" # unifi
+      - "1514:1514/tcp" # linux
+    restart: unless-stopped
+    volumes:
+      - ./examples/syslog-ng/config/syslog-ng.conf:/config/syslog-ng.conf
+      - ./examples/syslog-ng/config/conf.d:/config/conf.d
+      - ./logs:/logs
+
+  logbash:
+    image: docker.io/heywoodlh/logbash:latest
+    entrypoint: /bin/bash
+    command: "-c 'sleep infinity'"
+    environment:
+      - LOGBASH_CONFIG=/config.sh
+    restart: unless-stopped
+    volumes:
+      - ./config.sh:/config.sh
+      - ./logs:/logs
