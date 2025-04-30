@@ -49,7 +49,7 @@ then
 	error="true"
 fi
 
-#### Make sure --date value is correct			
+#### Make sure --date value is correct
 if ! date -d "${search_date}" &> /dev/null
 then
 	echo "Invalid date passed to --date argument."

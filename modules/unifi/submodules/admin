@@ -1,1 +1,1 @@
-export grep_pattern="admin_activity"
+export grep_pattern="admin_ip"
