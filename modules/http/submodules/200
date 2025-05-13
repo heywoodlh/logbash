@@ -1,4 +1,1 @@
-echo "-------------------------"
-echo "HTTP 200 code access logs"
-echo "-------------------------"
-grep -R -E 'HTTP.*200' ${http_log_target}
+export grep_pattern="HTTP.*200"

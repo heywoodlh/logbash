@@ -1,1 +1,0 @@
-export search_command="grep -R -e 'sshd.*Failed password' -e 'sshd.*Invalid verification code' -e 'sshd.*invalid user' ${linux_log_target}"

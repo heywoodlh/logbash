@@ -3,7 +3,7 @@ http() {
 	set -o noglob
 	log_target=${http_log_target}
 	set +o noglob
-	
+
 	### Enumerate the submodules
 	target=$2
 	submodules_dir="$1/submodules"

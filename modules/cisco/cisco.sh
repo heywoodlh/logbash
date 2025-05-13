@@ -3,7 +3,7 @@ cisco() {
 	set -o noglob
 	log_target=${cisco_log_target}
 	set +o noglob
-	
+
 	### Enumerate the submodules
 	target=$2
 	submodules_dir="$1/submodules"

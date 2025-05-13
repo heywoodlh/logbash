@@ -3,7 +3,7 @@ palo() {
 	set -o noglob
 	log_target=${palo_log_target}
 	set +o noglob
-	
+
 	### Enumerate the submodules
 	target=$2
 	submodules_dir="$1/submodules"
