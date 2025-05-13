@@ -1,0 +1,2 @@
+# auditd sudo logs
+export grep_pattern="bin\/sudo"

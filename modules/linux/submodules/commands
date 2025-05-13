@@ -1,0 +1,2 @@
+# auditd command
+export grep_pattern="type=EXECVE"
