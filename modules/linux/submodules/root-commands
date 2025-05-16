@@ -1,0 +1,2 @@
+# auditd sudo logs
+export grep_pattern="euid=0 "
