@@ -1,1 +1,1 @@
-export grep_pattern='-e THREAT.*high -e THREAT.*crit'
+export grep_pattern='THREAT.*(high|crit)'

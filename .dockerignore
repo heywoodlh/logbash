@@ -1,0 +1,5 @@
+.git
+.github
+config.sh
+logs
+*.log
