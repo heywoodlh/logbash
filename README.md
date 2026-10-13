@@ -65,9 +65,9 @@ data:
     export palo_log_target="/log/palo/*.log"
     export cisco_log_target="/log/cisco/*.log"
     export unifi_log_target="/logs/unifi/*.log"
-    export default_find_mime_time='-1' ## Defaults to one day
-    #export disable_default_find_mime_time="true"
-    #export disable_date="true
+    # Logbash searches files modified in the last seven days by default.
+    # Use --all for the entire archive or --date YYYY-MM-DD for one daily log.
+    #export disable_date="true"
     export LC_ALL=C
 ---
 apiVersion: apps/v1
@@ -261,13 +261,13 @@ Once logbash is deployed, usage is fairly simple:
 
 ```bash
 ❯ logbash
-usage: /usr/local/bin/logbash [ cisco http linux palo unifi ] [ --tail --date "Jan 01 2020" ]
+usage: /usr/local/bin/logbash [ cisco http linux palo unifi ] [ --tail --all --date "YYYY-MM-DD" ]
 ```
 
 If I want to get help on the `linux` module:
 ```bash
 ❯ logbash linux
-usage: /usr/local/bin/logbash linux [ ssh ssh-failed-login ] [ --tail --date "Jan 01 2020" ]
+usage: /usr/local/bin/logbash linux [ all auditd commands root-commands ssh ssh-failed-login sudo ] [ --tail --all --date "YYYY-MM-DD" ]
 ```
 
 Finally, if I want to run the `linux ssh` submodule to retrieve all ssh logs:
@@ -277,12 +277,16 @@ Finally, if I want to run the `linux ssh` submodule to retrieve all ssh logs:
 /log/2020.07.16.log:Jul 16 11:12:13 127.0.0.1 sshd[10010]: pam_unix(sshd:session): session closed for user heywoodlh
 ```
 
-The `--date` argument and `--tail` arguments are optional and cannot be used together.
+By default, Logbash selects files modified in the last seven days and searches
+the newest files first. Use `--all` to deliberately search every historical
+file. `--date YYYY-MM-DD` selects the matching daily archive directly, so it
+does not read unrelated history. `--tail`, `--all`, and `--date` are mutually
+exclusive.
 
 For example:
 
 ```bash
-logbash linux ssh --date "Jul 16"
+logbash linux ssh --date 2026-10-13
 ```
 
 Or:
@@ -328,15 +332,12 @@ mv linux.sh custom.sh
 ```
 
 
-Then change the stuff related to the `linux` module in `custom.sh`:
+Then change the function name and log-target variable in `custom.sh`:
 
 ```bash
 ## linux log module
 linux() {
-        module="linux"
-        set -o noglob
-        log_target=${linux_log_target}
-...
+        logbash_run_module "$1" "$2" "${linux_log_target:-}"
 ```
 
 Change to:
@@ -344,10 +345,7 @@ Change to:
 ```bash
 ## custom log module
 custom() {
-        module="custom"
-        set -o noglob
-        log_target=${custom_log_target}
-...
+        logbash_run_module "$1" "$2" "${custom_log_target:-}"
 ```
 
 Make sure that you define the path to your logs in `$custom_log_target` in `config.sh`:
@@ -368,21 +366,15 @@ For example, the ssh submodule in the linux module has the following path:
 modules/linux/submodules/ssh
 ```
 
-The modules expect one of two variables be set in the submodule file named `grep_pattern` or `search_command`. For example:
+Submodules should set `grep_pattern`; it is applied only to the selected files
+and therefore receives the default seven-day window, `--all`, and `--date`
+behavior automatically. For example:
 
 ```bash
 export grep_pattern="sshd"
 ```
 
-or 
-
-```bash
-export search_command="cat ${log_target} | jq '.message'"
-```
-
-
-The variables should be self explanatory, but here's an explanation anyway:
-
-`grep_pattern`: pattern that `grep` will use to search `$log_target`
-
-`search_command`: custom search command to run 
+`grep_pattern` is an extended regular expression that Logbash searches with
+`ripgrep` in newest-file-first order. `search_command` is unsupported because
+shell command strings cannot safely preserve filename boundaries; migrate
+custom submodules to `grep_pattern`.

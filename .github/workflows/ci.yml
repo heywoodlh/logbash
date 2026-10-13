@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check shell syntax
+        run: bash -n logbash.sh lib/logbash-search.sh modules/*/*.sh
+      - name: Validate Compose file
+        run: |
+          cp config.sh.example config.sh
+          docker compose config >/dev/null
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the pull-request image
+        run: docker build --pull --tag logbash:${{ github.sha }} .
+      - name: Run behavior suite in the built image
+        run: >-
+          docker run --rm
+          --entrypoint /bin/bash
+          -e LOGBASH_BIN=/usr/local/bin/logbash
+          logbash:${{ github.sha }}
+          -c 'bash /app/tests/test-logbash.sh'

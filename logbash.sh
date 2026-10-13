@@ -1,86 +1,94 @@
 #!/usr/bin/env bash
-target_command="$1"
-subcommands="${*:2}"
-### Enumerate script location, modules, etc.
-rootDir="$(dirname $(realpath $0))"
-if [[ -n ${LOGBASH_CONFIG} ]]
-then
-    [[ -e "${LOGBASH_CONFIG}" ]] || { echo "Config file not found: ${LOGBASH_CONFIG}"; exit 1; }
-    config_file="${LOGBASH_CONFIG}"
+set -o pipefail
+
+rootDir="$(dirname "$(realpath "$0")")"
+if [[ -n "${LOGBASH_CONFIG:-}" ]]; then
+  [[ -e "${LOGBASH_CONFIG}" ]] || { echo "Config file not found: ${LOGBASH_CONFIG}" >&2; exit 1; }
+  config_file="${LOGBASH_CONFIG}"
 else
-    config_file="${rootDir}/config.sh"
+  config_file="${rootDir}/config.sh"
 fi
 modules_dir="${rootDir}/modules"
+optional_args='--tail --all --date "YYYY-MM-DD"'
 
-#### Parse config file strings literally
 set -o noglob
-source ${config_file}
+source "$config_file"
 set +o noglob
+source "${rootDir}/lib/logbash-search.sh"
 
-### Arguments after modules
-optional_args="--tail --date \"Jan 01 2020\""
+positionals=()
 while [[ $# -gt 0 ]]; do
-	value="$1"
-	case ${value} in
-		--tail)
-			tail=1
-			;;
-		--date)
-			shift
-			if [[ disable_date != "true" ]]
-			then
-				search_date=$1
-			fi
-			;;
-		--date=*)
-			if [[ disable_date != "true" ]]
-			then
-				search_date="${value#*=}"
-			fi
-			;;
-	esac
-	shift
+  case "$1" in
+    --tail)
+      tail=1
+      ;;
+    --all)
+      search_all=1
+      ;;
+    --date)
+      shift
+      [[ $# -gt 0 ]] || { echo "--date requires a date value." >&2; exit 2; }
+      [[ "${disable_date:-}" != "true" ]] || { echo "--date is disabled by configuration." >&2; exit 2; }
+      search_date="$1"
+      ;;
+    --date=*)
+      [[ "${disable_date:-}" != "true" ]] || { echo "--date is disabled by configuration." >&2; exit 2; }
+      search_date="${1#*=}"
+      [[ -n "$search_date" ]] || { echo "--date requires a date value." >&2; exit 2; }
+      ;;
+    --help|-h)
+      echo "usage: $0 [ cisco http linux palo unifi ] [ $optional_args ]"
+      exit 0
+      ;;
+    --)
+      shift
+      positionals+=("$@")
+      break
+      ;;
+    *)
+      positionals+=("$1")
+      ;;
+  esac
+  shift
 done
 
-### Make sure that --tail and --date aren't set at the same time (since you can't tail + follow in the past)
-if [[ -n "${search_date}" ]] && [[ -n "${tail}" ]]
-then
-	echo "Cannot run both --tail and --date arguments."
-	error="true"
+if [[ -n "${tail:-}" && -n "${search_date:-}" ]]; then
+  echo "Cannot run both --tail and --date arguments." >&2
+  exit 2
+fi
+if [[ -n "${search_all:-}" && -n "${search_date:-}" ]]; then
+  echo "Cannot run both --all and --date arguments." >&2
+  exit 2
+fi
+if [[ -n "${tail:-}" && -n "${search_all:-}" ]]; then
+  echo "Cannot run both --tail and --all arguments." >&2
+  exit 2
+fi
+if [[ -n "${search_date:-}" ]]; then
+  if [[ ! "$search_date" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || ! search_date_day="$(date -d "$search_date" +%F)" || [[ "$search_date_day" != "$search_date" ]]; then
+    echo "Invalid date passed to --date argument." >&2
+    exit 2
+  fi
 fi
 
-#### Make sure --date value is correct
-if ! date -d "${search_date}" &> /dev/null
-then
-	echo "Invalid date passed to --date argument."
-	error="true"
-fi
-####
-###
+target_command="${positionals[0]:-}"
+subcommands="${positionals[*]:1}"
 
-
-### Enumerate modules in module directory
 modules_array=()
-for file in ${modules_dir}/*
-do
-	if [[ -d ${file} ]]
-	then
-		file="$(basename ${file}) "
-		modules_array+=${file}
-	fi
+for file in "$modules_dir"/*; do
+  [[ -d "$file" ]] && modules_array+=("$(basename "$file")")
 done
-valid_modules="${modules_array}"
 
-module_dir="${modules_dir}/${target_command}"
-module_file="${module_dir}/${target_command}.sh"
-###
-
-### Run module
-if [[ -f "${module_file}" ]] && [[ ${error} != "true" ]]
-then
-	source "${module_file}"
-	${target_command} ${module_dir} ${subcommands}
+module_dir="$modules_dir/$target_command"
+module_file="$module_dir/$target_command.sh"
+known_module=0
+for module in "${modules_array[@]}"; do
+  [[ "$target_command" == "$module" ]] && known_module=1
+done
+if [[ "$known_module" -eq 1 && -f "$module_file" ]]; then
+  source "$module_file"
+  "$target_command" "$module_dir" "$subcommands"
 else
-	echo "usage: $0 [ $valid_modules] [ ${optional_args} ]"
+  echo "usage: $0 [ ${modules_array[*]}] [ $optional_args ]" >&2
+  exit 2
 fi
-###

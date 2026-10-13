@@ -5,18 +5,15 @@
 #export unifi_log_target="/logs/unifi/*.log"
 
 
-## Uncomment default_find_mime_time if you want logbash to default to only search for files modified within a certain time:
-#export default_find_mime_time='-1' ## Defaults to one day
-
-## No need to uncomment unless you want to make an exception for specific modules to not use the default find time if you have it set
-## You should probably add this variable to the modules you don't want to use default time to search, not in config.sh
-#export disable_default_find_mime_time="true"
+## By default Logbash searches files modified in the last seven days, newest first.
+## Use --all to deliberately search every historical file, or --date YYYY-MM-DD
+## to select one daily archive. No configuration is needed for these defaults.
 
 
 
 ## Uncomment if you want to disable the --date flag.
 ## You should probably add this variable to the modules you don't want to use the --date flag, not in config.sh
-#export disable_date="true
+#export disable_date="true"
 
 
 ## Uncomment for minor performance improvements in grep

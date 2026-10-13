@@ -1,1 +1,1 @@
-export grep_pattern="-E '*'"
+export grep_pattern='.'
