@@ -80,6 +80,9 @@ logbash_search_selected() {
       found=0
     fi
   done
+  if [[ "$found" -ne 0 && -z "${search_date_day:-}" && -z "${search_all:-}" && -z "${tail:-}" ]]; then
+    printf 'No matches in the default 7-day window. Use --date YYYY-MM-DD or --all for historical logs.\n' >&2
+  fi
   return "$found"
 }
 
@@ -99,6 +102,11 @@ logbash_run_module() {
   for file in "$submodules_dir"/*; do
     [[ -f "$file" ]] && submodules+=("$(basename "$file")")
   done
+
+  if [[ -n "${help_requested:-}" ]]; then
+    printf 'usage: %s %s [ %s] [ %s ]\n' "$0" "$(basename "$module_dir")" "${submodules[*]}" "$optional_args"
+    return 0
+  fi
 
   local known_submodule=0
   for file in "${submodules[@]}"; do

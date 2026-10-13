@@ -11,6 +11,13 @@ fi
 modules_dir="${rootDir}/modules"
 optional_args='--tail --all --date "YYYY-MM-DD"'
 
+case "${1:-}" in
+  --help|-h)
+    echo "usage: $0 [ cisco http linux palo unifi ] [ $optional_args ]"
+    exit 0
+    ;;
+esac
+
 set -o noglob
 source "$config_file"
 set +o noglob
@@ -37,8 +44,7 @@ while [[ $# -gt 0 ]]; do
       [[ -n "$search_date" ]] || { echo "--date requires a date value." >&2; exit 2; }
       ;;
     --help|-h)
-      echo "usage: $0 [ cisco http linux palo unifi ] [ $optional_args ]"
-      exit 0
+      help_requested=1
       ;;
     --)
       shift
@@ -73,6 +79,11 @@ fi
 
 target_command="${positionals[0]:-}"
 subcommands="${positionals[*]:1}"
+
+if [[ -n "${help_requested:-}" && -z "$target_command" ]]; then
+  echo "usage: $0 [ cisco http linux palo unifi ] [ $optional_args ]"
+  exit 0
+fi
 
 modules_array=()
 for file in "$modules_dir"/*; do
