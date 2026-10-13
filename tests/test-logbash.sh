@@ -83,6 +83,23 @@ date_output="$(run_logbash unifi dhcp --date "$old_day")"
 assert_contains "$date_output" OLD_DHCP
 assert_not_contains "$date_output" NEWEST_DHCP
 
+module_help="$(run_logbash unifi --help)"
+assert_contains "$module_help" 'dhcp'
+
+if ! root_help="$(run_logbash --help --date 2>&1)"; then
+  fail 'root --help must succeed regardless of trailing options'
+fi
+assert_contains "$root_help" 'usage:'
+
+# A default-window miss must explain how to request historical data.
+mkdir -p "$tmp_dir/no-dhcp"
+printf '%s\n' 'router without DHCP events' > "$tmp_dir/no-dhcp/${today_token}.log"
+touch -d "$today_day 12:00:01 UTC" "$tmp_dir/no-dhcp/${today_token}.log"
+printf 'export unifi_log_target="%s/no-dhcp/*.log"\n' "$tmp_dir" >> "$tmp_dir/config.sh"
+no_match_output="$(run_logbash unifi dhcp 2>&1 || true)"
+assert_contains "$no_match_output" 'No matches in the default 7-day window'
+printf 'export unifi_log_target="%s/logs/unifi/*.log"\n' "$tmp_dir" >> "$tmp_dir/config.sh"
+
 # Every built-in module and submodule uses the shared selection path.
 for target in \
   'linux auditd AUDIT_MARKER' \
